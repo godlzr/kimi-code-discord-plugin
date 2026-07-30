@@ -1,0 +1,17 @@
+{
+  "name": "discord",
+  "version": "0.1.0",
+  "description": "Discord bridge for Kimi Code CLI — push-and-poll messaging tools (check/reply/react/fetch) with pairing and allowlist access control.",
+  "skills": "./skills/",
+  "mcpServers": {
+    "discord": {
+      "command": "bun",
+      "args": ["run", "start"],
+      "cwd": "./"
+    }
+  },
+  "interface": {
+    "displayName": "Discord",
+    "shortDescription": "Read and reply to Discord DMs/channels from Kimi Code"
+  }
+}
