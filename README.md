@@ -140,6 +140,15 @@ Code CLI silently ignores it and you're back to poll-only. Group channels
 never push, flag or not — `check_new_messages` is the only way to see
 those.
 
+> **Rendering the pushed message still needs one more thing.** The engine
+> wakes on push already, but showing the pushed text as its own message
+> (instead of only through the model's own reply) requires
+> [MoonshotAI/kimi-code#2432](https://github.com/MoonshotAI/kimi-code/pull/2432),
+> which isn't merged yet. Until it lands, either wait for the PR, or build
+> Kimi Code CLI from
+> [godlzr/kimi-code@feat/mcp-channel-tui-render](https://github.com/godlzr/kimi-code/tree/feat/mcp-channel-tui-render)
+> to get it now.
+
 ## Access control
 
 Same shape as the Claude Code plugin's `access.json`:
