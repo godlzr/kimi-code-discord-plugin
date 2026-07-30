@@ -60,15 +60,18 @@ and add the bot to any server you're in.
 
 **4. Install the plugin.**
 
-```sh
-kimi plugin install /path/to/kimi-code-discord-plugin
+Start a session: `kimi`. Then, inside the session:
+
+```
+/plugins install https://github.com/godlzr/kimi-code-discord-plugin.git
 ```
 
-(or `kimi plugin install https://github.com/<you>/kimi-code-discord-plugin.git`
-once it's pushed somewhere, or a `.zip`.)
+(or a local path — `/plugins install /path/to/kimi-code-discord-plugin` — if
+you cloned it yourself; a `.zip` URL also works.)
 
-Start a session: `kimi`. The plugin's MCP server (`discord`) is enabled by
-default — check with `/plugins` if you want to confirm.
+The plugin's MCP server (`discord`) is enabled by default — check with
+`/plugins` if you want to confirm. Run `/reload` or `/new` afterward to
+apply.
 
 **5. Give the server the token.**
 
