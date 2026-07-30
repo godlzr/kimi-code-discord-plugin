@@ -200,6 +200,35 @@ function noteSent(id: string): void {
   }
 }
 
+// Discord's typing indicator self-expires after ~10s, so a push that wakes a
+// slower turn needs it refreshed periodically. Keyed by chat_id; cleared as
+// soon as `reply` actually sends (the real message replaces the indicator
+// anyway) or after MAX_TYPING_REFRESHES as a safety net if the agent never
+// replies (reacts only, errors out, no MCP channel support, etc).
+const typingIntervals = new Map<string, ReturnType<typeof setInterval>>()
+const TYPING_REFRESH_MS = 8_000
+const MAX_TYPING_REFRESHES = 15 // ~2 minutes
+
+function stopTyping(chatId: string): void {
+  const interval = typingIntervals.get(chatId)
+  if (interval === undefined) return
+  clearInterval(interval)
+  typingIntervals.delete(chatId)
+}
+
+function startTyping(ch: TextBasedChannel, chatId: string): void {
+  stopTyping(chatId)
+  if (!('sendTyping' in ch)) return
+  let refreshes = 0
+  const tick = (): void => {
+    void ch.sendTyping().catch(() => {})
+    refreshes += 1
+    if (refreshes >= MAX_TYPING_REFRESHES) stopTyping(chatId)
+  }
+  tick()
+  typingIntervals.set(chatId, setInterval(tick, TYPING_REFRESH_MS))
+}
+
 async function isMentioned(msg: Message, extraPatterns?: string[]): Promise<boolean> {
   if (client.user && msg.mentions.has(client.user)) return true
 
@@ -539,6 +568,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
         const reply_to = args.reply_to as string | undefined
         const files = (args.files as string[] | undefined) ?? []
 
+        stopTyping(chat_id)
         const ch = await fetchAllowedChannel(chat_id)
         if (!('send' in ch)) throw new Error('channel is not sendable')
 
@@ -620,6 +650,7 @@ function shutdown(): void {
   if (shuttingDown) return
   shuttingDown = true
   process.stderr.write('discord channel: shutting down\n')
+  for (const chatId of [...typingIntervals.keys()]) stopTyping(chatId)
   setTimeout(() => process.exit(0), 2000)
   void Promise.resolve(client.destroy()).finally(() => process.exit(0))
 }
@@ -663,6 +694,7 @@ async function handleInbound(msg: Message): Promise<void> {
   }
   const experimental = mcp.getClientCapabilities()?.experimental
   if (experimental !== undefined && 'channel' in experimental) {
+    startTyping(msg.channel, msg.channelId)
     void mcp.notification({
       method: 'notifications/kimi/channel',
       params: { text: formatPushSection(msg, client.user?.id), chatId: msg.channelId, serverName: 'discord' },
